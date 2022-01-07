@@ -12,11 +12,11 @@ type Color struct {
 }
 
 const (
-	escape     = "\x1b"
-	fgAnsi     = "[38;5"
-	bgAnsi     = "[48;5"
-	fgColor256 = "[38;2"
-	bgColor256 = "[48;2"
+	escape      = "\x1b"
+	fgColor256  = "[38;5"
+	bgColor256  = "[48;5"
+	fgTrueColor = "[38;2"
+	bgTrueColor = "[48;2"
 )
 
 const (
@@ -24,6 +24,11 @@ const (
 	Color256
 	Ansi
 	NoColor
+)
+
+const (
+	fg = iota
+	bg
 )
 
 const (
@@ -129,10 +134,35 @@ func allowColor() int {
 	}
 }
 
+func rgb(red uint8, green uint8, blue uint8, ground int) string {
+	result := ""
+	switch allowColor() {
+	case TrueColor:
+		groundEscape := ""
+		if ground == fg {
+			groundEscape = fgTrueColor
+		} else if ground == bg {
+			groundEscape = bgTrueColor
+		}
+
+		result = fmt.Sprintf("%s%s;%d;%d;%dm", escape, groundEscape, red, green, blue)
+	case Color256:
+		result = ""
+	case Ansi:
+		result = ""
+	case NoColor:
+		result = ""
+	default:
+		result = ""
+	}
+
+	return result
+}
+
 func FgRGB(red uint8, green uint8, blue uint8) string {
-	return fmt.Sprintf("%s%s;%d;%d;%dm", escape, fgColor256, red, green, blue)
+	return rgb(red, green, blue, fg)
 }
 
 func BgRGB(red uint8, green uint8, blue uint8) string {
-	return fmt.Sprintf("%s%s;%d;%d;%dm", escape, bgColor256, red, green, blue)
+	return rgb(red, green, blue, bg)
 }
