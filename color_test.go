@@ -5,6 +5,15 @@ import (
 )
 
 func TestColor(t *testing.T) {
-	c := New(RGB(103, 254, 201))
-	c.Println("Hello world!!!")
+	randomColor := New(FgRGB(103, 254, 201))
+	randomColor.Println("Random color")
+
+	ansiColor := New(FgRed)
+	ansiColor.Println("Frontground red")
+
+	combineAnsiColor := New(BgYellow, FgBlue)
+	combineAnsiColor.Println("Combine Ansi color")
+
+	reverseColor := New(BgYellow, FgBlue, Reverse)
+	reverseColor.Println("Reverse color")
 }
