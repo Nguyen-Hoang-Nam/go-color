@@ -40,61 +40,69 @@ const (
 )
 
 const (
-	Reset     = escape + "[0m"
-	Bold      = escape + "[1m"
-	Dim       = escape + "[2m"
-	Italic    = escape + "[3m"
-	Underline = escape + "[4m"
-	Reverse   = escape + "[7m"
+	Reset     = 0
+	Bold      = 1
+	Dim       = 2
+	Italic    = 3
+	Underline = 4
+	Reverse   = 7
 
-	FgBlack   = escape + "[30m"
-	FgRed     = escape + "[31m"
-	FgGreen   = escape + "[32m"
-	FgYellow  = escape + "[33m"
-	FgBlue    = escape + "[34m"
-	FgMagenta = escape + "[35m"
-	FgCyan    = escape + "[36m"
-	FgWhite   = escape + "[37m"
+	FgBlack   = 30
+	FgRed     = 31
+	FgGreen   = 32
+	FgYellow  = 33
+	FgBlue    = 34
+	FgMagenta = 35
+	FgCyan    = 36
+	FgWhite   = 37
 
-	BgBlack   = escape + "[40m"
-	BgRed     = escape + "[41m"
-	BgGreen   = escape + "[42m"
-	BgYellow  = escape + "[43m"
-	BgBlue    = escape + "[44m"
-	BgMagenta = escape + "[45m"
-	BgCyan    = escape + "[46m"
-	BgWhite   = escape + "[47m"
+	BgBlack   = 40
+	BgRed     = 41
+	BgGreen   = 42
+	BgYellow  = 43
+	BgBlue    = 44
+	BgMagenta = 45
+	BgCyan    = 46
+	BgWhite   = 47
 
-	FgBrightBlack   = escape + "[90m"
-	FgBrightRed     = escape + "[91m"
-	FgBrightGreen   = escape + "[92m"
-	FgBrightYellow  = escape + "[93m"
-	FgBrightBlue    = escape + "[94m"
-	FgBrightMagenta = escape + "[95m"
-	FgBrightCyan    = escape + "[96m"
-	FgBrightWhite   = escape + "[97m"
+	FgBrightBlack   = 90
+	FgBrightRed     = 91
+	FgBrightGreen   = 92
+	FgBrightYellow  = 93
+	FgBrightBlue    = 94
+	FgBrightMagenta = 95
+	FgBrightCyan    = 96
+	FgBrightWhite   = 97
 
-	BgBrightBlack   = escape + "[100m"
-	BgBrightRed     = escape + "[101m"
-	BgBrightGreen   = escape + "[102m"
-	BgBrightYellow  = escape + "[103m"
-	BgBrightBlue    = escape + "[104m"
-	BgBrightMagenta = escape + "[105m"
-	BgBrightCyan    = escape + "[106m"
-	BgBrightWhite   = escape + "[107m"
+	BgBrightBlack   = 100
+	BgBrightRed     = 101
+	BgBrightGreen   = 102
+	BgBrightYellow  = 103
+	BgBrightBlue    = 104
+	BgBrightMagenta = 105
+	BgBrightCyan    = 106
+	BgBrightWhite   = 107
 )
 
 func New(attributes ...colorAttribute) *ColorAttributes {
 	return &ColorAttributes{
-		attributes: attributes,
+		attributes: reverse(attributes),
 		flag:       Auto,
 		distance:   DistanceRgb,
 	}
 }
 
-func AnsiEscape(escapeCode string) colorAttribute {
+func AnsiEscape(escapeCode int) colorAttribute {
+	display := fg
+	if escapeCode > 99 || (escapeCode < 90 && escapeCode > 39) {
+		display = bg
+	} else if escapeCode < 8 {
+		display = -1
+	}
+
 	return colorAttribute{
-		escapeCode: escapeCode,
+		escapeCode: fmt.Sprintf("%s[%dm", escape, escapeCode),
+		display:    display,
 	}
 }
 
@@ -111,43 +119,64 @@ func (c *ColorAttributes) SetDistance(distance int) *ColorAttributes {
 }
 
 func (c *ColorAttributes) Add(attributes ...colorAttribute) *ColorAttributes {
-	c.attributes = append(c.attributes, attributes...)
+	c.attributes = append(reverse(attributes), c.attributes...)
 
 	return c
 }
 
 func (c *ColorAttributes) Println(text string) {
 	attributes := ""
+	countFg := 0
+	countBg := 0
+
 	for i, attribute := range c.attributes {
 		currentAttribute := attribute.escapeCode
-		if currentAttribute == "" {
-			escapeCode := ""
-			isColor := true
+		isAdd := false
 
-			if c.flag == Auto {
-				escapeCode = rgb(attribute.color, attribute.display, c.distance)
-			} else if c.flag == TrueColor {
-				escapeCode = trueColor(attribute.color, attribute.display)
-			} else if c.flag == Color256 {
-				escapeCode = color256(attribute.color, attribute.display, c.distance)
-			} else if c.flag == Ansi {
-				escapeCode = ansi(attribute.color, attribute.display, c.distance)
-			} else {
-				isColor = false
+		if attribute.display == fg {
+			countFg++
+			if countFg <= 1 {
+				isAdd = true
 			}
-
-			if isColor {
-				attributes += escapeCode
-
-				attribute.escapeCode = escapeCode
-				c.attributes[i] = attribute
+		} else if attribute.display == bg {
+			countBg++
+			if countFg <= 1 {
+				isAdd = true
 			}
 		} else {
-			attributes += currentAttribute
+			isAdd = true
+		}
+
+		if isAdd {
+			if currentAttribute == "" {
+				escapeCode := ""
+				isColor := true
+
+				if c.flag == Auto {
+					escapeCode = rgb(attribute.color, attribute.display, c.distance)
+				} else if c.flag == TrueColor {
+					escapeCode = trueColor(attribute.color, attribute.display)
+				} else if c.flag == Color256 {
+					escapeCode = color256(attribute.color, attribute.display, c.distance)
+				} else if c.flag == Ansi {
+					escapeCode = ansi(attribute.color, attribute.display, c.distance)
+				} else {
+					isColor = false
+				}
+
+				if isColor {
+					attributes += escapeCode
+
+					attribute.escapeCode = escapeCode
+					c.attributes[i] = attribute
+				}
+			} else {
+				attributes += currentAttribute
+			}
 		}
 	}
 
-	fmt.Printf("%s%s%s\n", attributes, text, Reset)
+	fmt.Printf("%s%s%s[%dm\n", attributes, text, escape, Reset)
 }
 
 func trueColor(color colorful.Color, ground int) string {
@@ -162,7 +191,7 @@ func trueColor(color colorful.Color, ground int) string {
 }
 
 func color256(color colorful.Color, ground int, distance int) string {
-	minKey := minDistance(color, distance)
+	minKey := minDistance(color, distance, 256)
 
 	groundEscape := ""
 	if ground == fg {
@@ -175,7 +204,7 @@ func color256(color colorful.Color, ground int, distance int) string {
 }
 
 func ansi(color colorful.Color, ground int, distance int) string {
-	minKey := minDistance(color, distance)
+	minKey := minDistance(color, distance, 16)
 
 	codeEscape := 30
 	if ground == fg {
