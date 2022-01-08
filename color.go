@@ -9,6 +9,7 @@ import (
 type ColorAttributes struct {
 	attributes []colorAttribute
 	flag       int
+	distance   int
 }
 
 type colorAttribute struct {
@@ -87,6 +88,7 @@ func New(attributes ...colorAttribute) *ColorAttributes {
 	return &ColorAttributes{
 		attributes: attributes,
 		flag:       Auto,
+		distance:   DistanceRgb,
 	}
 }
 
@@ -98,6 +100,12 @@ func AnsiEscape(escapeCode string) colorAttribute {
 
 func (c *ColorAttributes) SetFlag(flag int) *ColorAttributes {
 	c.flag = flag
+
+	return c
+}
+
+func (c *ColorAttributes) SetDistance(distance int) *ColorAttributes {
+	c.distance = distance
 
 	return c
 }
@@ -117,13 +125,13 @@ func (c *ColorAttributes) Println(text string) {
 			isColor := true
 
 			if c.flag == Auto {
-				escapeCode = rgb(attribute.color, attribute.display)
+				escapeCode = rgb(attribute.color, attribute.display, c.distance)
 			} else if c.flag == TrueColor {
 				escapeCode = trueColor(attribute.color, attribute.display)
 			} else if c.flag == Color256 {
-				escapeCode = color256(attribute.color, attribute.display)
+				escapeCode = color256(attribute.color, attribute.display, c.distance)
 			} else if c.flag == Ansi {
-				escapeCode = ansi(attribute.color, attribute.display)
+				escapeCode = ansi(attribute.color, attribute.display, c.distance)
 			} else {
 				isColor = false
 			}
@@ -153,16 +161,8 @@ func trueColor(color colorful.Color, ground int) string {
 	return fmt.Sprintf("%s%s;%d;%d;%dm", escape, groundEscape, uint8(color.R*255), uint8(color.G*255), uint8(color.B*255))
 }
 
-func color256(color colorful.Color, ground int) string {
-	minDistance := color.DistanceRgb(xterm256[0])
-	minKey := 0
-	for key, value := range xterm256 {
-		valueDistance := color.DistanceRgb(value)
-		if valueDistance < minDistance {
-			minDistance = valueDistance
-			minKey = key
-		}
-	}
+func color256(color colorful.Color, ground int, distance int) string {
+	minKey := minDistance(color, distance)
 
 	groundEscape := ""
 	if ground == fg {
@@ -174,16 +174,8 @@ func color256(color colorful.Color, ground int) string {
 	return fmt.Sprintf("%s%s;%dm", escape, groundEscape, minKey)
 }
 
-func ansi(color colorful.Color, ground int) string {
-	minDistance := color.DistanceRgb(xterm256[0])
-	minKey := 0
-	for key := 0; key < 16; key++ {
-		valueDistance := color.DistanceRgb(xterm256[key])
-		if valueDistance < minDistance {
-			minDistance = valueDistance
-			minKey = key
-		}
-	}
+func ansi(color colorful.Color, ground int, distance int) string {
+	minKey := minDistance(color, distance)
 
 	codeEscape := 30
 	if ground == fg {
@@ -203,16 +195,16 @@ func ansi(color colorful.Color, ground int) string {
 	return fmt.Sprintf("%s[%dm", escape, codeEscape)
 }
 
-func rgb(color colorful.Color, ground int) string {
+func rgb(color colorful.Color, ground int, distance int) string {
 	switch termColor() {
 	case TrueColor:
 		return trueColor(color, ground)
 
 	case Color256:
-		return color256(color, ground)
+		return color256(color, ground, distance)
 
 	case Ansi:
-		return ansi(color, ground)
+		return ansi(color, ground, distance)
 
 	case NoColor:
 		return ""

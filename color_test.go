@@ -5,7 +5,7 @@ import (
 )
 
 func TestColor(t *testing.T) {
-	rgbColor := FgRGB(0, 150, 100)
+	rgbColor := FgRGB(161, 241, 147)
 
 	randomColor := New(rgbColor)
 	randomColor.Println("Random color")
@@ -27,4 +27,10 @@ func TestColor(t *testing.T) {
 
 	flagAnsi := New(rgbColor).SetFlag(Ansi)
 	flagAnsi.Println("Flag ansi")
+
+	distanceLab := New(rgbColor).SetFlag(Color256).SetDistance(DistanceLab)
+	distanceLab.Println("Distance lab")
+
+	distanceCIE94 := New(rgbColor).SetFlag(Color256).SetDistance(DistanceCIE94)
+	distanceCIE94.Println("Distance CIE94")
 }
