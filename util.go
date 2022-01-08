@@ -1,5 +1,7 @@
 package gocolor
 
+import "github.com/lucasb-eyer/go-colorful"
+
 // Credit https://stackoverflow.com/questions/28058278/how-do-i-reverse-a-slice-in-go
 func reverse(s []colorAttribute) []colorAttribute {
 	a := make([]colorAttribute, len(s))
@@ -11,4 +13,12 @@ func reverse(s []colorAttribute) []colorAttribute {
 	}
 
 	return a
+}
+
+func complementary(color colorful.Color) colorful.Color {
+	return colorful.Color{
+		R: 1 - color.R,
+		G: 1 - color.G,
+		B: 1 - color.B,
+	}
 }

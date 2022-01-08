@@ -124,6 +124,32 @@ func (c *ColorAttributes) Add(attributes ...colorAttribute) *ColorAttributes {
 	return c
 }
 
+func (c *ColorAttributes) AddComplementary() *ColorAttributes {
+	for _, attribute := range c.attributes {
+		if attribute.display == fg {
+			complementaryAttribute := colorAttribute{
+				display: bg,
+				color:   complementary(attribute.color),
+			}
+
+			c.attributes = append([]colorAttribute{complementaryAttribute}, c.attributes...)
+
+			break
+		} else if attribute.display == bg {
+			complementaryAttribute := colorAttribute{
+				display: fg,
+				color:   complementary(attribute.color),
+			}
+
+			c.attributes = append([]colorAttribute{complementaryAttribute}, c.attributes...)
+
+			break
+		}
+	}
+
+	return c
+}
+
 func (c *ColorAttributes) getAttributes() string {
 	attributes := ""
 	countFg := 0
