@@ -113,30 +113,22 @@ func (c *ColorAttributes) Println(text string) {
 	for i, attribute := range c.attributes {
 		currentAttribute := attribute.escapeCode
 		if currentAttribute == "" {
+			escapeCode := ""
+			isColor := true
+
 			if c.flag == Auto {
-				escapeCode := rgb(attribute.color, attribute.display)
-
-				attributes += escapeCode
-
-				attribute.escapeCode = escapeCode
-				c.attributes[i] = attribute
+				escapeCode = rgb(attribute.color, attribute.display)
 			} else if c.flag == TrueColor {
-				escapeCode := trueColor(attribute.color, attribute.display)
-
-				attributes += escapeCode
-
-				attribute.escapeCode = escapeCode
-				c.attributes[i] = attribute
+				escapeCode = trueColor(attribute.color, attribute.display)
 			} else if c.flag == Color256 {
-				escapeCode := color256(attribute.color, attribute.display)
-
-				attributes += escapeCode
-
-				attribute.escapeCode = escapeCode
-				c.attributes[i] = attribute
+				escapeCode = color256(attribute.color, attribute.display)
 			} else if c.flag == Ansi {
-				escapeCode := ansi(attribute.color, attribute.display)
+				escapeCode = ansi(attribute.color, attribute.display)
+			} else {
+				isColor = false
+			}
 
+			if isColor {
 				attributes += escapeCode
 
 				attribute.escapeCode = escapeCode

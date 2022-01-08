@@ -4,11 +4,11 @@ import "github.com/lucasb-eyer/go-colorful"
 
 const (
 	Xterm0 = 0
-	Xterm1 = 128 / 255
-	Xterm2 = 95 / 255
-	Xterm3 = 135 / 255
-	Xterm4 = 175 / 255
-	Xterm5 = 215 / 255
+	Xterm1 = 128.0 / 255.0
+	Xterm2 = 95.0 / 255.0
+	Xterm3 = 135.0 / 255.0
+	Xterm4 = 175.0 / 255.0
+	Xterm5 = 215.0 / 255.0
 	Xterm6 = 1
 )
 

@@ -5,7 +5,9 @@ import (
 )
 
 func TestColor(t *testing.T) {
-	randomColor := New(FgRGB(103, 254, 201))
+	rgbColor := FgRGB(0, 150, 100)
+
+	randomColor := New(rgbColor)
 	randomColor.Println("Random color")
 
 	ansiColor := New(AnsiEscape(FgRed))
@@ -20,6 +22,9 @@ func TestColor(t *testing.T) {
 	hsvColor := New(FgHSV(120, 1, 0.5))
 	hsvColor.Println("HSV color")
 
-	flagColor256 := New(FgRGB(103, 254, 201)).SetFlag(Color256)
+	flagColor256 := New(rgbColor).SetFlag(Color256)
 	flagColor256.Println("Flag 256")
+
+	flagAnsi := New(rgbColor).SetFlag(Ansi)
+	flagAnsi.Println("Flag ansi")
 }
