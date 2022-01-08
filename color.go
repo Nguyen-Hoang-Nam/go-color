@@ -9,7 +9,7 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
-type Color struct {
+type ColorAttributes struct {
 	attributes []string
 }
 
@@ -79,8 +79,8 @@ const (
 )
 
 // Credit https://github.com/fatih/color
-func New(attributes ...string) *Color {
-	c := &Color{
+func New(attributes ...string) *ColorAttributes {
+	c := &ColorAttributes{
 		attributes: make([]string, 0),
 	}
 
@@ -88,13 +88,13 @@ func New(attributes ...string) *Color {
 	return c
 }
 
-func (c *Color) Add(attributes ...string) *Color {
+func (c *ColorAttributes) Add(attributes ...string) *ColorAttributes {
 	c.attributes = append(c.attributes, attributes...)
 
 	return c
 }
 
-func (c *Color) Println(text string) {
+func (c *ColorAttributes) Println(text string) {
 	fmt.Printf("%s%s%s%s\n", strings.Join(c.attributes, ""), text, escape, Reset)
 }
 
