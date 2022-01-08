@@ -20,6 +20,7 @@ var xterm256 = []colorful.Color{
 	{R: Xterm1, G: Xterm1, B: Xterm0},
 	{R: Xterm0, G: Xterm0, B: Xterm1},
 	{R: Xterm1, G: Xterm0, B: Xterm1},
+	{R: Xterm0, G: Xterm1, B: Xterm1},
 	{R: 192 / 255, G: 192 / 255, B: 192 / 255},
 	{R: Xterm1, G: Xterm1, B: Xterm1},
 	{R: Xterm6, G: Xterm0, B: Xterm0},

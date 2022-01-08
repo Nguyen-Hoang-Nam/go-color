@@ -2,13 +2,19 @@ package gocolor
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/lucasb-eyer/go-colorful"
 )
 
 type ColorAttributes struct {
-	attributes []string
+	attributes []colorAttribute
+	flag       int
+}
+
+type colorAttribute struct {
+	escapeCode string
+	color      colorful.Color
+	display    int
 }
 
 const (
@@ -24,6 +30,7 @@ const (
 	Color256
 	Ansi
 	NoColor
+	Auto
 )
 
 const (
@@ -76,119 +83,193 @@ const (
 	BgBrightWhite   = escape + "[107m"
 )
 
-func New(attributes ...string) *ColorAttributes {
+func New(attributes ...colorAttribute) *ColorAttributes {
 	return &ColorAttributes{
 		attributes: attributes,
+		flag:       Auto,
 	}
 }
 
-func (c *ColorAttributes) Add(attributes ...string) *ColorAttributes {
+func AnsiEscape(escapeCode string) colorAttribute {
+	return colorAttribute{
+		escapeCode: escapeCode,
+	}
+}
+
+func (c *ColorAttributes) SetFlag(flag int) *ColorAttributes {
+	c.flag = flag
+
+	return c
+}
+
+func (c *ColorAttributes) Add(attributes ...colorAttribute) *ColorAttributes {
 	c.attributes = append(c.attributes, attributes...)
 
 	return c
 }
 
 func (c *ColorAttributes) Println(text string) {
-	fmt.Printf("%s%s%s\n", strings.Join(c.attributes, ""), text, Reset)
-}
+	attributes := ""
+	for i, attribute := range c.attributes {
+		currentAttribute := attribute.escapeCode
+		if currentAttribute == "" {
+			if c.flag == Auto {
+				escapeCode := rgb(attribute.color, attribute.display)
 
-func rgb(red uint8, green uint8, blue uint8, ground int) string {
-	result := ""
-	switch termColor() {
-	case TrueColor:
-		groundEscape := ""
-		if ground == fg {
-			groundEscape = fgTrueColor
-		} else if ground == bg {
-			groundEscape = bgTrueColor
-		}
+				attributes += escapeCode
 
-		result = fmt.Sprintf("%s%s;%d;%d;%dm", escape, groundEscape, red, green, blue)
-	case Color256:
-		currentColor := colorful.Color{
-			R: float64(red) / 255, G: float64(green) / 255, B: float64(blue) / 255,
-		}
+				attribute.escapeCode = escapeCode
+				c.attributes[i] = attribute
+			} else if c.flag == TrueColor {
+				escapeCode := trueColor(attribute.color, attribute.display)
 
-		minDistance := currentColor.DistanceRgb(xterm256[0])
-		minKey := 0
-		for key, value := range xterm256 {
-			valueDistance := currentColor.DistanceRgb(value)
-			if valueDistance < minDistance {
-				minDistance = valueDistance
-				minKey = key
+				attributes += escapeCode
+
+				attribute.escapeCode = escapeCode
+				c.attributes[i] = attribute
+			} else if c.flag == Color256 {
+				escapeCode := color256(attribute.color, attribute.display)
+
+				attributes += escapeCode
+
+				attribute.escapeCode = escapeCode
+				c.attributes[i] = attribute
+			} else if c.flag == Ansi {
+				escapeCode := ansi(attribute.color, attribute.display)
+
+				attributes += escapeCode
+
+				attribute.escapeCode = escapeCode
+				c.attributes[i] = attribute
 			}
+		} else {
+			attributes += currentAttribute
 		}
-
-		groundEscape := ""
-		if ground == fg {
-			groundEscape = fgColor256
-		} else if ground == bg {
-			groundEscape = bgColor256
-		}
-
-		approximateColor := xterm256[minKey]
-		approximateRed := int(approximateColor.R * 255)
-		approximateGreen := int(approximateColor.G * 255)
-		approximateBlue := int(approximateColor.B * 255)
-
-		result = fmt.Sprintf("%s%s;%d;%d;%dm", escape, groundEscape, approximateRed, approximateGreen, approximateBlue)
-
-	case Ansi:
-		currentColor := colorful.Color{
-			R: float64(red) / 255, G: float64(green) / 255, B: float64(blue) / 255,
-		}
-
-		minDistance := currentColor.DistanceRgb(xterm256[0])
-		minKey := 0
-		for key := 0; key < 16; key++ {
-			valueDistance := currentColor.DistanceRgb(xterm256[key])
-			if valueDistance < minDistance {
-				minDistance = valueDistance
-				minKey = key
-			}
-		}
-
-		codeEscape := 30
-		if ground == fg {
-			if minKey < 8 {
-				codeEscape = 30 + minKey
-			} else {
-				codeEscape = 82 + minKey
-			}
-		} else if ground == bg {
-			if minKey < 8 {
-				codeEscape = 40 + minKey
-			} else {
-				codeEscape = 92 + minKey
-			}
-		}
-
-		result = fmt.Sprintf("%s[%dm", escape, codeEscape)
-	case NoColor:
-		result = ""
-	default:
-		result = ""
 	}
 
-	return result
+	fmt.Printf("%s%s%s\n", attributes, text, Reset)
 }
 
-func FgRGB(red uint8, green uint8, blue uint8) string {
-	return rgb(red, green, blue, fg)
+func trueColor(color colorful.Color, ground int) string {
+	groundEscape := ""
+	if ground == fg {
+		groundEscape = fgTrueColor
+	} else if ground == bg {
+		groundEscape = bgTrueColor
+	}
+
+	return fmt.Sprintf("%s%s;%d;%d;%dm", escape, groundEscape, uint8(color.R*255), uint8(color.G*255), uint8(color.B*255))
 }
 
-func BgRGB(red uint8, green uint8, blue uint8) string {
-	return rgb(red, green, blue, bg)
+func color256(color colorful.Color, ground int) string {
+	minDistance := color.DistanceRgb(xterm256[0])
+	minKey := 0
+	for key, value := range xterm256 {
+		valueDistance := color.DistanceRgb(value)
+		if valueDistance < minDistance {
+			minDistance = valueDistance
+			minKey = key
+		}
+	}
+
+	groundEscape := ""
+	if ground == fg {
+		groundEscape = fgColor256
+	} else if ground == bg {
+		groundEscape = bgColor256
+	}
+
+	return fmt.Sprintf("%s%s;%dm", escape, groundEscape, minKey)
 }
 
-func FgHSV(hue float64, saturation float64, value float64) string {
+func ansi(color colorful.Color, ground int) string {
+	minDistance := color.DistanceRgb(xterm256[0])
+	minKey := 0
+	for key := 0; key < 16; key++ {
+		valueDistance := color.DistanceRgb(xterm256[key])
+		if valueDistance < minDistance {
+			minDistance = valueDistance
+			minKey = key
+		}
+	}
+
+	codeEscape := 30
+	if ground == fg {
+		if minKey < 8 {
+			codeEscape = 30 + minKey
+		} else {
+			codeEscape = 82 + minKey
+		}
+	} else if ground == bg {
+		if minKey < 8 {
+			codeEscape = 40 + minKey
+		} else {
+			codeEscape = 92 + minKey
+		}
+	}
+
+	return fmt.Sprintf("%s[%dm", escape, codeEscape)
+}
+
+func rgb(color colorful.Color, ground int) string {
+	switch termColor() {
+	case TrueColor:
+		return trueColor(color, ground)
+
+	case Color256:
+		return color256(color, ground)
+
+	case Ansi:
+		return ansi(color, ground)
+
+	case NoColor:
+		return ""
+
+	default:
+		return ""
+	}
+}
+
+func FgRGB(red uint8, green uint8, blue uint8) colorAttribute {
+	return colorAttribute{
+		escapeCode: "",
+		color: colorful.Color{
+			R: float64(red) / 255, G: float64(green) / 255, B: float64(blue) / 255,
+		},
+		display: fg,
+	}
+}
+
+func BgRGB(red uint8, green uint8, blue uint8) colorAttribute {
+	return colorAttribute{
+		escapeCode: "",
+		color: colorful.Color{
+			R: float64(red) / 255, G: float64(green) / 255, B: float64(blue) / 255,
+		},
+		display: bg,
+	}
+}
+
+func FgHSV(hue float64, saturation float64, value float64) colorAttribute {
 	color := colorful.Hsv(hue, saturation, value)
 
-	return rgb(uint8(color.R*255), uint8(color.G*255), uint8(color.B*255), fg)
+	return colorAttribute{
+		escapeCode: "",
+		color: colorful.Color{
+			R: color.R, G: color.G, B: color.B,
+		},
+		display: fg,
+	}
 }
 
-func BgHSV(hue float64, saturation float64, value float64) string {
+func BgHSV(hue float64, saturation float64, value float64) colorAttribute {
 	color := colorful.Hsv(hue, saturation, value)
 
-	return rgb(uint8(color.R*255), uint8(color.G*255), uint8(color.B*255), bg)
+	return colorAttribute{
+		escapeCode: "",
+		color: colorful.Color{
+			R: color.R, G: color.G, B: color.B,
+		},
+		display: bg,
+	}
 }
