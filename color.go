@@ -92,6 +92,7 @@ func New(attributes ...colorAttribute) *ColorAttributes {
 	}
 }
 
+// TODO Map xterm to color
 func AnsiEscape(escapeCode int) colorAttribute {
 	display := fg
 	if escapeCode > 99 || (escapeCode < 90 && escapeCode > 39) {
