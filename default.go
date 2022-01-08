@@ -12,8 +12,8 @@ const (
 	Xterm6 = 1
 )
 
-// Base on XTerm color
-var Xterm256 = []colorful.Color{
+// Based on https://www.ditig.com/256-colors-cheat-sheet
+var xterm256 = []colorful.Color{
 	{R: Xterm0, G: Xterm0, B: Xterm0},
 	{R: Xterm1, G: Xterm0, B: Xterm0},
 	{R: Xterm0, G: Xterm1, B: Xterm0},

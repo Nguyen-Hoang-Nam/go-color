@@ -2,8 +2,6 @@ package gocolor
 
 import (
 	"fmt"
-	"os"
-	"runtime"
 	"strings"
 
 	"github.com/lucasb-eyer/go-colorful"
@@ -78,14 +76,10 @@ const (
 	BgBrightWhite   = escape + "[107m"
 )
 
-// Credit https://github.com/fatih/color
 func New(attributes ...string) *ColorAttributes {
-	c := &ColorAttributes{
-		attributes: make([]string, 0),
+	return &ColorAttributes{
+		attributes: attributes,
 	}
-
-	c.Add(attributes...)
-	return c
 }
 
 func (c *ColorAttributes) Add(attributes ...string) *ColorAttributes {
@@ -95,54 +89,12 @@ func (c *ColorAttributes) Add(attributes ...string) *ColorAttributes {
 }
 
 func (c *ColorAttributes) Println(text string) {
-	fmt.Printf("%s%s%s%s\n", strings.Join(c.attributes, ""), text, escape, Reset)
-}
-
-// Inspirate by https://github.com/BurntSushi/termcolor
-func allowColor() int {
-	osType := runtime.GOOS
-
-	term := os.Getenv("TERM")
-	switch osType {
-	case "windows":
-		if term == "dumb" {
-			return NoColor
-		}
-
-		if os.Getenv("NO_COLOR") != "" {
-			return NoColor
-		}
-
-	case "linux":
-		if term == "" || term == "dump" {
-			return NoColor
-		}
-
-		if os.Getenv("NO_COLOR") != "" {
-			return NoColor
-		}
-
-	default:
-		return NoColor
-	}
-
-	colorTerm := os.Getenv("COLORTERM")
-	if colorTerm == "truecolor" || colorTerm == "24bit" {
-		return TrueColor
-	}
-
-	if strings.Contains(term, "256") {
-		return Color256
-	} else if term == "iterm" || term == "iterm2" {
-		return Color256
-	} else {
-		return Ansi
-	}
+	fmt.Printf("%s%s%s\n", strings.Join(c.attributes, ""), text, Reset)
 }
 
 func rgb(red uint8, green uint8, blue uint8, ground int) string {
 	result := ""
-	switch allowColor() {
+	switch termColor() {
 	case TrueColor:
 		groundEscape := ""
 		if ground == fg {
@@ -153,9 +105,65 @@ func rgb(red uint8, green uint8, blue uint8, ground int) string {
 
 		result = fmt.Sprintf("%s%s;%d;%d;%dm", escape, groundEscape, red, green, blue)
 	case Color256:
-		result = ""
+		currentColor := colorful.Color{
+			R: float64(red) / 255, G: float64(green) / 255, B: float64(blue) / 255,
+		}
+
+		minDistance := currentColor.DistanceRgb(xterm256[0])
+		minKey := 0
+		for key, value := range xterm256 {
+			valueDistance := currentColor.DistanceRgb(value)
+			if valueDistance < minDistance {
+				minDistance = valueDistance
+				minKey = key
+			}
+		}
+
+		groundEscape := ""
+		if ground == fg {
+			groundEscape = fgColor256
+		} else if ground == bg {
+			groundEscape = bgColor256
+		}
+
+		approximateColor := xterm256[minKey]
+		approximateRed := int(approximateColor.R * 255)
+		approximateGreen := int(approximateColor.G * 255)
+		approximateBlue := int(approximateColor.B * 255)
+
+		result = fmt.Sprintf("%s%s;%d;%d;%dm", escape, groundEscape, approximateRed, approximateGreen, approximateBlue)
+
 	case Ansi:
-		result = ""
+		currentColor := colorful.Color{
+			R: float64(red) / 255, G: float64(green) / 255, B: float64(blue) / 255,
+		}
+
+		minDistance := currentColor.DistanceRgb(xterm256[0])
+		minKey := 0
+		for key := 0; key < 16; key++ {
+			valueDistance := currentColor.DistanceRgb(xterm256[key])
+			if valueDistance < minDistance {
+				minDistance = valueDistance
+				minKey = key
+			}
+		}
+
+		codeEscape := 30
+		if ground == fg {
+			if minKey < 8 {
+				codeEscape = 30 + minKey
+			} else {
+				codeEscape = 82 + minKey
+			}
+		} else if ground == bg {
+			if minKey < 8 {
+				codeEscape = 40 + minKey
+			} else {
+				codeEscape = 92 + minKey
+			}
+		}
+
+		result = fmt.Sprintf("%s[%dm", escape, codeEscape)
 	case NoColor:
 		result = ""
 	default:
