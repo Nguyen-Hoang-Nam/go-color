@@ -5,6 +5,8 @@ import (
 	"os"
 	"runtime"
 	"strings"
+
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 type Color struct {
@@ -76,6 +78,7 @@ const (
 	BgBrightWhite   = escape + "[107m"
 )
 
+// Credit https://github.com/fatih/color
 func New(attributes ...string) *Color {
 	c := &Color{
 		attributes: make([]string, 0),
@@ -92,9 +95,10 @@ func (c *Color) Add(attributes ...string) *Color {
 }
 
 func (c *Color) Println(text string) {
-	fmt.Printf("%s%s%s[0m\n", strings.Join(c.attributes, ""), text, escape)
+	fmt.Printf("%s%s%s%s\n", strings.Join(c.attributes, ""), text, escape, Reset)
 }
 
+// Inspirate by https://github.com/BurntSushi/termcolor
 func allowColor() int {
 	osType := runtime.GOOS
 
@@ -108,7 +112,8 @@ func allowColor() int {
 		if os.Getenv("NO_COLOR") != "" {
 			return NoColor
 		}
-	case "Linux":
+
+	case "linux":
 		if term == "" || term == "dump" {
 			return NoColor
 		}
@@ -116,6 +121,7 @@ func allowColor() int {
 		if os.Getenv("NO_COLOR") != "" {
 			return NoColor
 		}
+
 	default:
 		return NoColor
 	}
@@ -165,4 +171,16 @@ func FgRGB(red uint8, green uint8, blue uint8) string {
 
 func BgRGB(red uint8, green uint8, blue uint8) string {
 	return rgb(red, green, blue, bg)
+}
+
+func FgHSV(hue float64, saturation float64, value float64) string {
+	color := colorful.Hsv(hue, saturation, value)
+
+	return rgb(uint8(color.R*255), uint8(color.G*255), uint8(color.B*255), fg)
+}
+
+func BgHSV(hue float64, saturation float64, value float64) string {
+	color := colorful.Hsv(hue, saturation, value)
+
+	return rgb(uint8(color.R*255), uint8(color.G*255), uint8(color.B*255), bg)
 }

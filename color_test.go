@@ -16,4 +16,7 @@ func TestColor(t *testing.T) {
 
 	reverseColor := New(BgYellow, FgBlue, Reverse)
 	reverseColor.Println("Reverse color")
+
+	hsvColor := New(FgHSV(120, 1, 0.5))
+	hsvColor.Println("HSV color")
 }
