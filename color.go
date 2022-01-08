@@ -124,7 +124,7 @@ func (c *ColorAttributes) Add(attributes ...colorAttribute) *ColorAttributes {
 	return c
 }
 
-func (c *ColorAttributes) Println(text string) {
+func (c *ColorAttributes) getAttributes() string {
 	attributes := ""
 	countFg := 0
 	countBg := 0
@@ -176,7 +176,11 @@ func (c *ColorAttributes) Println(text string) {
 		}
 	}
 
-	fmt.Printf("%s%s%s[%dm\n", attributes, text, escape, Reset)
+	return attributes
+}
+
+func (c *ColorAttributes) Println(text string) {
+	fmt.Printf("%s%s%s[%dm\n", c.getAttributes(), text, escape, Reset)
 }
 
 func trueColor(color colorful.Color, ground int) string {
