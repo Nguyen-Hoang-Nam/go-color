@@ -13,7 +13,7 @@ func TestColor(t *testing.T) {
 	ansiColor := New(AnsiEscape(FgRed))
 	ansiColor.Println("Frontground red")
 
-	complementaryAnsiColor := New(rgbColor).AddComplementary()
+	complementaryAnsiColor := New(AnsiEscape(FgRed)).AddComplementary()
 	complementaryAnsiColor.Println("Complementary background")
 
 	combineAnsiColor := New(AnsiEscape(BgYellow), AnsiEscape(FgBlue))

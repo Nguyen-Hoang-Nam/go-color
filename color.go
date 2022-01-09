@@ -86,7 +86,7 @@ const (
 
 func New(attributes ...colorAttribute) *ColorAttributes {
 	return &ColorAttributes{
-		attributes: reverse(attributes),
+		attributes: attributes,
 		flag:       Auto,
 		distance:   DistanceRgb,
 	}
@@ -94,16 +94,20 @@ func New(attributes ...colorAttribute) *ColorAttributes {
 
 // TODO Map xterm to color
 func AnsiEscape(escapeCode int) colorAttribute {
-	display := fg
-	if escapeCode > 99 || (escapeCode < 90 && escapeCode > 39) {
-		display = bg
-	} else if escapeCode < 8 {
-		display = -1
-	}
+	display := getAnsiDisplay(escapeCode)
+	color256Code := mapAnsiToColor256(escapeCode)
 
-	return colorAttribute{
-		escapeCode: fmt.Sprintf("%s[%dm", escape, escapeCode),
-		display:    display,
+	if color256Code == -1 {
+		return colorAttribute{
+			escapeCode: fmt.Sprintf("%s[%dm", escape, escapeCode),
+			display:    display,
+		}
+	} else {
+		return colorAttribute{
+			escapeCode: fmt.Sprintf("%s[%dm", escape, escapeCode),
+			display:    display,
+			color:      xterm256[color256Code],
+		}
 	}
 }
 
@@ -120,20 +124,22 @@ func (c *ColorAttributes) SetDistance(distance int) *ColorAttributes {
 }
 
 func (c *ColorAttributes) Add(attributes ...colorAttribute) *ColorAttributes {
-	c.attributes = append(reverse(attributes), c.attributes...)
+	c.attributes = append(c.attributes, attributes...)
 
 	return c
 }
 
 func (c *ColorAttributes) AddComplementary() *ColorAttributes {
-	for _, attribute := range c.attributes {
+	numberAttribute := len(c.attributes)
+	for i := numberAttribute - 1; i >= 0; i-- {
+		attribute := c.attributes[i]
 		if attribute.display == fg {
 			complementaryAttribute := colorAttribute{
 				display: bg,
 				color:   complementary(attribute.color),
 			}
 
-			c.attributes = append([]colorAttribute{complementaryAttribute}, c.attributes...)
+			c.attributes = append(c.attributes, complementaryAttribute)
 
 			break
 		} else if attribute.display == bg {
@@ -142,7 +148,7 @@ func (c *ColorAttributes) AddComplementary() *ColorAttributes {
 				color:   complementary(attribute.color),
 			}
 
-			c.attributes = append([]colorAttribute{complementaryAttribute}, c.attributes...)
+			c.attributes = append(c.attributes, complementaryAttribute)
 
 			break
 		}
@@ -315,5 +321,21 @@ func BgHSV(hue float64, saturation float64, value float64) colorAttribute {
 			R: color.R, G: color.G, B: color.B,
 		},
 		display: bg,
+	}
+}
+
+func FgColor256(color256 int) colorAttribute {
+	return colorAttribute{
+		escapeCode: "",
+		color:      xterm256[color256],
+		display:    fg,
+	}
+}
+
+func BgColor256(color256 int) colorAttribute {
+	return colorAttribute{
+		escapeCode: "",
+		color:      xterm256[color256],
+		display:    bg,
 	}
 }
