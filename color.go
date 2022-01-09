@@ -16,6 +16,7 @@ type colorAttribute struct {
 	escapeCode string
 	color      colorful.Color
 	display    int
+	err        error
 }
 
 const (
@@ -85,6 +86,13 @@ const (
 )
 
 func New(attributes ...colorAttribute) *ColorAttributes {
+	for _, attribute := range attributes {
+		if attribute.err != nil {
+			fmt.Printf("%v", attribute.err)
+			return nil
+		}
+	}
+
 	return &ColorAttributes{
 		attributes: attributes,
 		flag:       Auto,
@@ -92,12 +100,18 @@ func New(attributes ...colorAttribute) *ColorAttributes {
 	}
 }
 
-// TODO Map xterm to color
-func AnsiEscape(escapeCode int) colorAttribute {
+func AnsiEscape(escapeCode uint8) colorAttribute {
+	err := ansiValidate(escapeCode)
+	if err != nil {
+		return colorAttribute{
+			err: err,
+		}
+	}
+
 	display := getAnsiDisplay(escapeCode)
 	color256Code := mapAnsiToColor256(escapeCode)
 
-	if color256Code == -1 {
+	if color256Code == 255 {
 		return colorAttribute{
 			escapeCode: fmt.Sprintf("%s[%dm", escape, escapeCode),
 			display:    display,
@@ -301,6 +315,13 @@ func BgRGB(red uint8, green uint8, blue uint8) colorAttribute {
 }
 
 func FgHSV(hue float64, saturation float64, value float64) colorAttribute {
+	err := hsvValidate(hue, saturation, value)
+	if err != nil {
+		return colorAttribute{
+			err: err,
+		}
+	}
+
 	color := colorful.Hsv(hue, saturation, value)
 
 	return colorAttribute{
@@ -313,6 +334,13 @@ func FgHSV(hue float64, saturation float64, value float64) colorAttribute {
 }
 
 func BgHSV(hue float64, saturation float64, value float64) colorAttribute {
+	err := hsvValidate(hue, saturation, value)
+	if err != nil {
+		return colorAttribute{
+			err: err,
+		}
+	}
+
 	color := colorful.Hsv(hue, saturation, value)
 
 	return colorAttribute{
@@ -324,7 +352,7 @@ func BgHSV(hue float64, saturation float64, value float64) colorAttribute {
 	}
 }
 
-func FgColor256(color256 int) colorAttribute {
+func FgColor256(color256 uint8) colorAttribute {
 	return colorAttribute{
 		escapeCode: "",
 		color:      xterm256[color256],
@@ -332,7 +360,7 @@ func FgColor256(color256 int) colorAttribute {
 	}
 }
 
-func BgColor256(color256 int) colorAttribute {
+func BgColor256(color256 uint8) colorAttribute {
 	return colorAttribute{
 		escapeCode: "",
 		color:      xterm256[color256],

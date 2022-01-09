@@ -10,9 +10,9 @@ func complementary(color colorful.Color) colorful.Color {
 	}
 }
 
-func mapAnsiToColor256(ansiCode int) int {
+func mapAnsiToColor256(ansiCode uint8) uint8 {
 	if ansiCode < 8 {
-		return -1
+		return 255
 	} else if ansiCode < 40 {
 		return ansiCode - 30
 	} else if ansiCode < 90 {
@@ -24,7 +24,7 @@ func mapAnsiToColor256(ansiCode int) int {
 	}
 }
 
-func getAnsiDisplay(ansiCode int) int {
+func getAnsiDisplay(ansiCode uint8) int {
 	if ansiCode > 99 || (ansiCode < 90 && ansiCode > 39) {
 		return bg
 	} else if ansiCode < 8 {
