@@ -1,4 +1,4 @@
-module github.com/Nguyen-Hoang-Nam/go-color
+module github.com/Nguyen-Hoang-Nam/gocolor
 
 go 1.16
 
