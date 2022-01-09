@@ -129,7 +129,7 @@ which is the nearest to original color.
 - DistanceCIEDE2000
 
 ```go
-truecolor := gocolor.New(gocolor.FgRBG(255, 0, 255)).SetDistance(gocolor.DistanceLab)
+distanceLab := gocolor.New(gocolor.FgRBG(255, 0, 255)).SetDistance(gocolor.DistanceLab)
 ```
 
 Each distances may give you a completely difference fallback color which is
@@ -144,10 +144,13 @@ color to make a high contrast message.
 complementary := gocolor.New(gocolor.FgRBG(255, 0, 255)).AddComplementary()
 ```
 
-## TODo
+## TODO
 
 - [ ] Pipeline
 - [ ] Add image to README
+- [ ] Support change default Ansi color
+- [ ] Add github CI
+- [ ] Improve test cases
 
 ## Contributing
 
