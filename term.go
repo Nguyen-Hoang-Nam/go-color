@@ -65,23 +65,16 @@ func isTrueColor() bool {
 		"linux-truecolor",
 		"screen-truecolor",
 		"tmux-truecolor",
-		"xterm-truecolor":
+		"xterm-truecolor",
+		"xterm-kitty":
 		return true
 	}
 
-	if strings.Contains(termEnv, "vte") {
-		return true
-	}
-
-	return false
+	return strings.Contains(termEnv, "vte")
 }
 
 func isColor256() bool {
-	if strings.Contains(os.Getenv(term), "256") {
-		return true
-	}
-
-	return false
+	return strings.Contains(os.Getenv(term), "256")
 }
 
 func termColor() int {
