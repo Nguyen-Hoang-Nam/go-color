@@ -1,7 +1,9 @@
 package gocolor
 
 import (
+	"bytes"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 )
@@ -75,6 +77,31 @@ func isTrueColor() bool {
 
 func isColor256() bool {
 	return strings.Contains(os.Getenv(term), "256")
+}
+
+func getTerm() string {
+	termEnv := os.Getenv(term)
+	switch termEnv {
+	case "xterm-kitty":
+		return "kitty"
+	}
+
+	return ""
+}
+
+func getTermColor() {
+	term := getTerm()
+
+	if term == "kitty" {
+		cmd := exec.Command("kitty", "@", "get-colors")
+
+		var out bytes.Buffer
+		cmd.Stdout = &out
+
+		// err := cmd.Run()
+		// if err != nil {
+		// }
+	}
 }
 
 func termColor() int {

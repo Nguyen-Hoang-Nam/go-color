@@ -278,6 +278,7 @@ func ansi(color colorful.Color, ground int, distance int) string {
 func rgb(color colorful.Color, ground int, distance int) string {
 	switch termColor() {
 	case TrueColor:
+		getTermColor()
 		return trueColor(color, ground)
 
 	case Color256:
