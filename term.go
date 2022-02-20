@@ -99,20 +99,24 @@ func getTermColor() []colorful.Color {
 			return terminal.Xterm256
 		}
 
-		cacheColors = colors
-		return colors
+		fallback = mergeColor(colors)
+
+		cacheColors = fallback
+		return fallback
 	} else if termName == Alacritty {
 		colors, err := terminal.GetAlacrittyColor()
 		if err != nil {
 			return terminal.Xterm256
 		}
 
-		cacheColors = colors
-		return colors
+		fallback = mergeColor(colors)
+
+		cacheColors = fallback
+		return fallback
 	}
 
-	cacheColors = terminal.Xterm256
-	return terminal.Xterm256
+	cacheColors = fallback
+	return fallback
 }
 
 func termColor() int {

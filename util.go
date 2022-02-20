@@ -1,6 +1,8 @@
 package gocolor
 
-import "github.com/lucasb-eyer/go-colorful"
+import (
+	"github.com/lucasb-eyer/go-colorful"
+)
 
 func complementary(color colorful.Color) colorful.Color {
 	return colorful.Color{
@@ -32,4 +34,14 @@ func getAnsiDisplay(ansiCode uint8) int {
 	}
 
 	return fg
+}
+
+func mergeColor(colors map[int]colorful.Color) []colorful.Color {
+	for key := range fallback {
+		if val, ok := colors[key]; ok {
+			fallback[key] = val
+		}
+	}
+
+	return fallback
 }

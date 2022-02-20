@@ -1,8 +1,13 @@
 package gocolor
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
 
+	"github.com/Nguyen-Hoang-Nam/go-color/terminal"
 	"github.com/lucasb-eyer/go-colorful"
 )
 
@@ -18,6 +23,8 @@ type colorAttribute struct {
 	display    int
 	err        error
 }
+
+var fallback []colorful.Color = terminal.Xterm256
 
 func New(attributes ...colorAttribute) *ColorAttributes {
 	for _, attribute := range attributes {
@@ -69,6 +76,47 @@ func (c *ColorAttributes) SetFlag(flag int) *ColorAttributes {
 
 func (c *ColorAttributes) SetDistance(distance int) *ColorAttributes {
 	c.distance = distance
+
+	return c
+}
+
+func (c *ColorAttributes) SetFallback(colors map[int]colorful.Color) *ColorAttributes {
+	fallback = mergeColor(colors)
+
+	return c
+}
+
+func (c *ColorAttributes) SetFallbackFromPath(filePath string) *ColorAttributes {
+	if _, err := os.Stat(filePath); !os.IsNotExist(err) {
+		jsonFile, err := os.Open(filePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		byteValue, err := ioutil.ReadAll(jsonFile)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		var colors map[int]colorful.Color
+
+		err = json.Unmarshal(byteValue, &colors)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		for i := range colors {
+			colors[i] = colorful.Color{
+				R: colors[i].R / 255.0,
+				G: colors[i].G / 255.0,
+				B: colors[i].B / 255.0,
+			}
+		}
+
+		fallback = mergeColor(colors)
+	} else {
+		log.Fatal("File not exist")
+	}
 
 	return c
 }
@@ -214,7 +262,6 @@ func ansi(color colorful.Color, ground int, distance int) string {
 func rgb(color colorful.Color, ground int, distance int) string {
 	switch termColor() {
 	case TrueColor:
-		getTermColor()
 		return trueColor(color, ground)
 
 	case Color256:

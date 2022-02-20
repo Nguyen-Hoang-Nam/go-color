@@ -12,7 +12,7 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
-func extractColor(content string) []colorful.Color {
+func extractColor(content string) map[int]colorful.Color {
 	outSlice := strings.Split(content, "\n")
 
 	pattern := regexp.MustCompile(`color\d`)
@@ -40,17 +40,10 @@ func extractColor(content string) []colorful.Color {
 		}
 	}
 
-	colors := Xterm256
-	for key := range colors {
-		if val, ok := colorMap[key]; ok {
-			colors[key] = val
-		}
-	}
-
-	return colors
+	return colorMap
 }
 
-func getColorRemotControlProtocol() ([]colorful.Color, error) {
+func getColorRemotControlProtocol() (map[int]colorful.Color, error) {
 	cmd := exec.Command("kitty", "@", "get-colors")
 
 	var out bytes.Buffer
@@ -74,7 +67,7 @@ func checkFileExit(filePath string) bool {
 }
 
 // TODO Recuring parse Kitty configuration to list of colors
-func readConfiguration(filePath string) ([]colorful.Color, error) {
+func readConfiguration(filePath string) (map[int]colorful.Color, error) {
 	if checkFileExit(filePath) {
 		configuration, err := os.ReadFile(filePath)
 		if err != nil {
@@ -88,7 +81,7 @@ func readConfiguration(filePath string) ([]colorful.Color, error) {
 	return nil, errors.New("File not exist")
 }
 
-func getColorFromConfiguration() ([]colorful.Color, error) {
+func getColorFromConfiguration() (map[int]colorful.Color, error) {
 	KITTY_CONFIG_DIRECTORY := os.Getenv("KITTY_CONFIG_DIRECTORY")
 	if KITTY_CONFIG_DIRECTORY != "" {
 		if colors, err := readConfiguration(KITTY_CONFIG_DIRECTORY); err == nil {
@@ -96,23 +89,30 @@ func getColorFromConfiguration() ([]colorful.Color, error) {
 		}
 	}
 
-	if colors, err := readConfiguration("$XDG_CONFIG_HOME/kitty/kitty.conf"); err == nil {
+	XDG_CONFIG_HOME := os.Getenv("XDG_CONFIG_HOME")
+	if XDG_CONFIG_HOME != "" {
+		if colors, err := readConfiguration(XDG_CONFIG_HOME + "/kitty/kitty.conf"); err == nil {
+			return colors, nil
+		}
+	}
+
+	HOME := os.Getenv("HOME")
+	if colors, err := readConfiguration(HOME + "/.config/kitty/kitty.conf"); err == nil {
 		return colors, nil
 	}
 
-	if colors, err := readConfiguration("~/.config/kitty/kitty.conf"); err == nil {
-		return colors, nil
-	}
-
-	if colors, err := readConfiguration("$XDG_CONFIG_DIRS/kitty/kitty.conf"); err == nil {
-		return colors, nil
+	XDG_CONFIG_DIRS := os.Getenv("XDG_CONFIG_DIRS")
+	if XDG_CONFIG_DIRS != "" {
+		if colors, err := readConfiguration(XDG_CONFIG_DIRS + "/kitty/kitty.conf"); err == nil {
+			return colors, nil
+		}
 	}
 
 	return nil, errors.New("Can not get color")
 }
 
 // Run really slow
-func GetKittyColor() ([]colorful.Color, error) {
+func GetKittyColor() (map[int]colorful.Color, error) {
 	colors, err := getColorFromConfiguration()
 	if err != nil {
 		colors, err = getColorRemotControlProtocol()

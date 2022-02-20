@@ -39,4 +39,7 @@ func TestColor(t *testing.T) {
 
 	distanceCIE94 := New(rgbColor).SetFlag(Color256).SetDistance(DistanceCIE94)
 	distanceCIE94.Println("New(rgbColor).SetFlag(Color256).SetDistance(DistanceCIE94)")
+
+	importConfiguration := New().SetFallbackFromPath("./configuration.json").Add(FgColor256(24))
+	importConfiguration.Println("New(FgColor256(24))")
 }
