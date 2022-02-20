@@ -146,11 +146,20 @@ color to make a high contrast message.
 complementary := gocolor.New(gocolor.FgRBG(255, 0, 255)).AddComplementary()
 ```
 
+### Fallback
+
+If you want to change default fallback colors. You can use `SetFallback` or
+`SetFallbackFromPath` function.
+
+```go
+fallback := gocolor.New().SetFallbackFromPath("./configuration.json").Add(gocolor.FgColor256(24))
+```
+
 ## TODO
 
 - [ ] Pipeline
 - [x] Add image to README
-- [ ] Support change default Ansi color
+- [x] Support change default Ansi color
 - [ ] Add github CI
 - [ ] Improve test cases
 
