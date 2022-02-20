@@ -90,20 +90,20 @@ func getTermColor() []colorful.Color {
 	if termName == Kitty {
 		colors, err := terminal.GetKittyColor()
 		if err != nil {
-			return xterm256
+			return terminal.Xterm256
 		}
 
 		return colors
 	} else if termName == Alacritty {
 		colors, err := terminal.GetAlacrittyColor()
 		if err != nil {
-			return xterm256
+			return terminal.Xterm256
 		}
 
 		return colors
 	}
 
-	return xterm256
+	return terminal.Xterm256
 }
 
 func termColor() int {

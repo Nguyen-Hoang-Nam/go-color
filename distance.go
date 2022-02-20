@@ -1,6 +1,9 @@
 package gocolor
 
-import "github.com/lucasb-eyer/go-colorful"
+import (
+	"github.com/Nguyen-Hoang-Nam/go-color/terminal"
+	"github.com/lucasb-eyer/go-colorful"
+)
 
 const (
 	DistanceRgb = iota
@@ -11,9 +14,9 @@ const (
 )
 
 func minDistanceRbg(color colorful.Color, limit int) int {
-	minDistance := color.DistanceRgb(xterm256[0])
+	minDistance := color.DistanceRgb(terminal.Xterm256[0])
 	minKey := 0
-	for key, value := range xterm256 {
+	for key, value := range terminal.Xterm256 {
 		if key == limit {
 			break
 		}
@@ -29,9 +32,9 @@ func minDistanceRbg(color colorful.Color, limit int) int {
 }
 
 func minDistanceLab(color colorful.Color, limit int) int {
-	minDistance := color.DistanceLab(xterm256[0])
+	minDistance := color.DistanceLab(terminal.Xterm256[0])
 	minKey := 0
-	for key, value := range xterm256 {
+	for key, value := range terminal.Xterm256 {
 		if key == limit {
 			break
 		}
@@ -47,9 +50,9 @@ func minDistanceLab(color colorful.Color, limit int) int {
 }
 
 func minDistanceLuv(color colorful.Color, limit int) int {
-	minDistance := color.DistanceLuv(xterm256[0])
+	minDistance := color.DistanceLuv(terminal.Xterm256[0])
 	minKey := 0
-	for key, value := range xterm256 {
+	for key, value := range terminal.Xterm256 {
 		if key == limit {
 			break
 		}
@@ -65,9 +68,9 @@ func minDistanceLuv(color colorful.Color, limit int) int {
 }
 
 func minDistanceCIE94(color colorful.Color, limit int) int {
-	minDistance := color.DistanceCIE94(xterm256[0])
+	minDistance := color.DistanceCIE94(terminal.Xterm256[0])
 	minKey := 0
-	for key, value := range xterm256 {
+	for key, value := range terminal.Xterm256 {
 		if key == limit {
 			break
 		}
@@ -83,9 +86,9 @@ func minDistanceCIE94(color colorful.Color, limit int) int {
 }
 
 func minDistanceCIEDE2000(color colorful.Color, limit int) int {
-	minDistance := color.DistanceCIEDE2000(xterm256[0])
+	minDistance := color.DistanceCIEDE2000(terminal.Xterm256[0])
 	minKey := 0
-	for key, value := range xterm256 {
+	for key, value := range terminal.Xterm256 {
 		if key == limit {
 			break
 		}

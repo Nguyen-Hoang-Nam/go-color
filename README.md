@@ -3,6 +3,8 @@
 I love the way [fatih/color](https://github.com/fatih/color) work and the
 power of [BurntSushi/termcolor](https://github.com/BurntSushi/termcolor).
 
+![Kitty terminal](https://raw.githubusercontent.com/Nguyen-Hoang-Nam/readme-image/main/go-color/go-color.jpg)
+
 ## Installation
 
 ```bash
@@ -147,7 +149,7 @@ complementary := gocolor.New(gocolor.FgRBG(255, 0, 255)).AddComplementary()
 ## TODO
 
 - [ ] Pipeline
-- [ ] Add image to README
+- [x] Add image to README
 - [ ] Support change default Ansi color
 - [ ] Add github CI
 - [ ] Improve test cases
