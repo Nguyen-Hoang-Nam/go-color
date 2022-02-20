@@ -1,17 +1,12 @@
 package gocolor
 
 import (
-	"bytes"
 	"os"
-	"os/exec"
 	"runtime"
 	"strings"
-)
 
-const (
-	term      = "TERM"
-	noColor   = "NO_COLOR"
-	colorTerm = "COLORTERM"
+	"github.com/Nguyen-Hoang-Nam/go-color/terminal"
+	"github.com/lucasb-eyer/go-colorful"
 )
 
 func isNoColorWindow() bool {
@@ -79,29 +74,36 @@ func isColor256() bool {
 	return strings.Contains(os.Getenv(term), "256")
 }
 
-func getTerm() string {
+func getTerm() int {
 	termEnv := os.Getenv(term)
 	switch termEnv {
 	case "xterm-kitty":
-		return "kitty"
+		return Kitty
 	}
 
-	return ""
+	return Default
 }
 
-func getTermColor() {
-	term := getTerm()
+func getTermColor() []colorful.Color {
+	termName := getTerm()
 
-	if term == "kitty" {
-		cmd := exec.Command("kitty", "@", "get-colors")
+	if termName == Kitty {
+		colors, err := terminal.GetKittyColor()
+		if err != nil {
+			return xterm256
+		}
 
-		var out bytes.Buffer
-		cmd.Stdout = &out
+		return colors
+	} else if termName == Alacritty {
+		colors, err := terminal.GetAlacrittyColor()
+		if err != nil {
+			return xterm256
+		}
 
-		// err := cmd.Run()
-		// if err != nil {
-		// }
+		return colors
 	}
+
+	return xterm256
 }
 
 func termColor() int {
