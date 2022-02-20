@@ -9,12 +9,14 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
+var cacheColors []colorful.Color = nil
+
 func isNoColorWindow() bool {
-	if os.Getenv(term) == "dumb" {
+	if os.Getenv(TERM) == "dumb" {
 		return true
 	}
 
-	if os.Getenv(noColor) != "" {
+	if os.Getenv(NO_COLOR) != "" {
 		return true
 	}
 
@@ -22,7 +24,7 @@ func isNoColorWindow() bool {
 }
 
 func isNoColorLinux() bool {
-	if os.Getenv(term) == "" || os.Getenv(term) == "dump" {
+	if os.Getenv(TERM) == "" || os.Getenv(TERM) == "dump" {
 		return true
 	}
 
@@ -50,12 +52,12 @@ func isNoColor() bool {
 
 // Based on https://github.com/termstandard/colors
 func isTrueColor() bool {
-	colorTermEnv := os.Getenv(colorTerm)
+	colorTermEnv := os.Getenv(COLOR_TERM)
 	if colorTermEnv == "truecolor" || colorTermEnv == "24bit" {
 		return true
 	}
 
-	termEnv := os.Getenv(term)
+	termEnv := os.Getenv(TERM)
 	switch termEnv {
 	case
 		"iterm",
@@ -71,11 +73,11 @@ func isTrueColor() bool {
 }
 
 func isColor256() bool {
-	return strings.Contains(os.Getenv(term), "256")
+	return strings.Contains(os.Getenv(TERM), "256")
 }
 
 func getTerm() int {
-	termEnv := os.Getenv(term)
+	termEnv := os.Getenv(TERM)
 	switch termEnv {
 	case "xterm-kitty":
 		return Kitty
@@ -85,6 +87,10 @@ func getTerm() int {
 }
 
 func getTermColor() []colorful.Color {
+	if cacheColors != nil {
+		return cacheColors
+	}
+
 	termName := getTerm()
 
 	if termName == Kitty {
@@ -93,6 +99,7 @@ func getTermColor() []colorful.Color {
 			return terminal.Xterm256
 		}
 
+		cacheColors = colors
 		return colors
 	} else if termName == Alacritty {
 		colors, err := terminal.GetAlacrittyColor()
@@ -100,9 +107,11 @@ func getTermColor() []colorful.Color {
 			return terminal.Xterm256
 		}
 
+		cacheColors = colors
 		return colors
 	}
 
+	cacheColors = terminal.Xterm256
 	return terminal.Xterm256
 }
 

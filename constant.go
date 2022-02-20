@@ -67,9 +67,9 @@ const (
 )
 
 const (
-	term      = "TERM"
-	noColor   = "NO_COLOR"
-	colorTerm = "COLORTERM"
+	TERM       = "TERM"
+	NO_COLOR   = "NO_COLOR"
+	COLOR_TERM = "COLORTERM"
 )
 
 const (
